@@ -2,12 +2,13 @@
 
 namespace App\Presentation\Controller;
 
-use App\Application\Service\TodoService;
+use DateTimeImmutable;
 use App\Domain\Entity\Todo;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Application\Service\TodoService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class TodoController extends AbstractController
 {
@@ -41,7 +42,9 @@ class TodoController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $todo = $this->todoService->createTodo(
             $data['title'],
-            $data['description']
+            $data['description'],
+            $data['completed'],
+            // $data['createdAt']
         );
         return $this->json($todo, Response::HTTP_CREATED);
     }
@@ -61,6 +64,7 @@ class TodoController extends AbstractController
             $data['description'],
             $data['isCompleted']
         );
+        // dd($updatedTodo);
         return $this->json($updatedTodo);
     }
 

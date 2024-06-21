@@ -23,11 +23,13 @@ class TodoService
         $this->validator = $validator;
     }
 
-    public function createTodo($title, $description): Todo
+    public function createTodo($title, $description, $isCompleted, $createdAt = new \DateTimeImmutable()): Todo
     {
         $todo = new Todo();
         $todo->setTitle($title);
         $todo->setDescription($description);
+        $todo->setCompleted($isCompleted);
+        // $todo->setCreatedAt($createdAt);
 
         $errors = $this->validator->validate($todo);
         if (count($errors) > 0) {
