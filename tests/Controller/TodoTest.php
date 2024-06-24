@@ -18,43 +18,42 @@ class TodoTest extends WebTestCase
     {
         $client = static::createClient();
 
-        // In case you need to simulate a logged in user :
-        // $userRepository = static::getContainer()->get(UserRepository::class);
-        // $testUser = $userRepository->findOneByEmail('john.doe@example.com');
-        // $client->loginUser($testUser);
-        
-        $todo = new Todo();
         $urlGenerator = $client->getContainer()->get('router');
-        
         $url = $urlGenerator->generate('todo_create');
-        // $createdAt = new DateTimeImmutable();
-        // dd($createdAt);
-        
+
+        $createdAt = (new DateTimeImmutable())->format(DATE_ATOM); 
+        $todoData = [
+            'title' => 'Test new Post Title',
+            'description' => 'This is the content of the test post.',
+            'isCompleted' => false,
+            'createdAt' => $createdAt
+        ];
+
         $client->request(
             Request::METHOD_POST,
             $url,
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'title' => 'Test Post Title',
-                'description' => 'This is the content of the test post.',
-                'completed' => true,
-                // 'createdAt' => $createdAt
-            ])
+            json_encode($todoData)
         );
 
         $responseContent = $client->getResponse()->getContent();
         $responseData = json_decode($responseContent, true);
-        // dd($responseData);
 
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
-        $this->assertEquals('Test Post Title', $responseData['title']);
-        $this->assertEquals('This is the content of the test post.', $responseData['description']);
-        $this->assertEquals(true, $responseData['completed']);
-        // $this->assertEquals($createdAt, $responseData['createdAt']);
+
+        $this->assertEquals($todoData['title'], $responseData['title']);
+        $this->assertEquals($todoData['description'], $responseData['description']);
+        $this->assertEquals($todoData['isCompleted'], $responseData['completed']);
+        $this->assertEquals($todoData['createdAt'], $responseData['createdAt']);
+
+        $this->assertArrayHasKey('id', $responseData);
+        $this->assertArrayHasKey('updatedAt', $responseData);
+        $this->assertNull($responseData['updatedAt']);
     }
+
     
 
     // TODOS LIST
@@ -75,10 +74,10 @@ class TodoTest extends WebTestCase
         $client = static::createClient();
         
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
-        $todo = $entityManager->find(Todo::class, 2);
+        $todo = $entityManager->find(Todo::class, 44);
         
         if (!$todo) {
-            $this->fail('Todo with ID 2 not found.');
+            $this->fail('Todo with ID 44 not found.');
         }
         
         $client->request('GET', '/api/todos/' . $todo->getId());
@@ -94,22 +93,28 @@ class TodoTest extends WebTestCase
         $client = static::createClient();
         
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
-        $todo = $entityManager->find(Todo::class, 1);
+        $todo = $entityManager->find(Todo::class, 43);
         
         if (!$todo) {
-            $this->fail('Todo with ID 1 not found.');
+            $this->fail('Todo with ID 43 not found.');
         }
         
+        $updatedAt = (new DateTimeImmutable())->format(DATE_ATOM);
         $updatedData = [
             'title' => 'Updated Title',
             'description' => 'Updated Description',
-            'isCompleted' => $todo->isCompleted(),
-            'updatedAt' => $todo->getUpdatedAt()
+            'isCompleted' => true,
+            'updatedAt' => $updatedAt
         ];
         
-        $client->request('PUT', '/api/todos/' . $todo->getId(), [], [], [
-            'CONTENT_TYPE' => 'application/json',
-        ], json_encode($updatedData));
+        $client->request(
+            'PUT', 
+            '/api/todos/' . $todo->getId(),
+            [],
+            [], 
+            ['CONTENT_TYPE' => 'application/json'], 
+            json_encode($updatedData)
+        );
         
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
@@ -118,6 +123,8 @@ class TodoTest extends WebTestCase
         
         $this->assertSame('Updated Title', $todo->getTitle());
         $this->assertSame('Updated Description', $todo->getDescription());
+        $this->assertSame(true, $todo->isCompleted());
+        $this->assertSame($updatedAt, $todo->getUpdatedAt()->format(DATE_ATOM));
     }
 
 
@@ -127,10 +134,10 @@ class TodoTest extends WebTestCase
         $client = static::createClient();
         
         $entityManager = $client->getContainer()->get('doctrine')->getManager();
-        $todo = $entityManager->find(Todo::class, 1);
+        $todo = $entityManager->find(Todo::class, 45);
         
         if (!$todo) {
-            $this->fail('Todo with ID 2 not found.');
+            $this->fail('Todo with ID 45 not found.');
         }
         
         $client->request('DELETE', '/api/todos/' . $todo->getId());
@@ -138,7 +145,7 @@ class TodoTest extends WebTestCase
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
         
-        $deletedTodo = $entityManager->find(Todo::class, 1);
+        $deletedTodo = $entityManager->find(Todo::class, 45);
         $this->assertNull($deletedTodo, 'Todo should be deleted');
     }
 }

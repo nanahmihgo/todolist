@@ -29,7 +29,7 @@ class TodoService
         $todo->setTitle($title);
         $todo->setDescription($description);
         $todo->setCompleted($isCompleted);
-        // $todo->setCreatedAt($createdAt);
+        $todo->setCreatedAt($createdAt);
 
         $errors = $this->validator->validate($todo);
         if (count($errors) > 0) {
@@ -44,6 +44,7 @@ class TodoService
 
     public function updateTodo(Todo $todo, $title, $description, $isCompleted): Todo
     {
+        $todo;
         $todo->setTitle($title);
         $todo->setDescription($description);
         $todo->setCompleted($isCompleted);

@@ -43,8 +43,7 @@ class TodoController extends AbstractController
         $todo = $this->todoService->createTodo(
             $data['title'],
             $data['description'],
-            $data['completed'],
-            // $data['createdAt']
+            $data['isCompleted']
         );
         return $this->json($todo, Response::HTTP_CREATED);
     }
@@ -64,7 +63,6 @@ class TodoController extends AbstractController
             $data['description'],
             $data['isCompleted']
         );
-        // dd($updatedTodo);
         return $this->json($updatedTodo);
     }
 
